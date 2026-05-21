@@ -175,7 +175,7 @@ class ReelsCaptionApp(ctk.CTk):
         )
         ctk.CTkLabel(
             header,
-            text="PC 영상 또는 릴스/유튜브 링크를 분석해서 기존 학습용 데이터 톤에 맞는 캡션.txt를 생성합니다.",
+            text="PC 영상 또는 릴스/유튜브 링크를 분석해서 캡션.txt와 이모지 확인용 캡션.html을 생성합니다.",
             font=self.font_subtitle,
             text_color="#475569",
         ).grid(row=1, column=0, padx=32, pady=(0, 22), sticky="w")
@@ -434,10 +434,10 @@ class ReelsCaptionApp(ctk.CTk):
 
     def _output_card(self, parent: ctk.CTkBaseClass) -> ctk.CTkFrame:
         card = self._card(parent, "저장 위치")
-        self._helper_label(card, "PC 파일은 기본적으로 영상이 있는 폴더에 캡션.txt를 만듭니다. 링크는 생성된 캡션 폴더에 새 폴더를 만듭니다.", 1)
+        self._helper_label(card, "PC 파일은 기본적으로 영상이 있는 폴더에 캡션.txt와 캡션.html을 만듭니다. 링크는 생성된 캡션 폴더에 새 폴더를 만듭니다.", 1)
         self.save_next_checkbox = ctk.CTkCheckBox(
             card,
-            text="PC 파일은 원본 영상 폴더에 캡션.txt 저장",
+            text="PC 파일은 원본 영상 폴더에 캡션 저장",
             variable=self.save_next_to_source_var,
             font=self.font_body,
             checkbox_width=24,
@@ -516,7 +516,7 @@ class ReelsCaptionApp(ctk.CTk):
         button_row.grid_columnconfigure(1, weight=1)
         self.open_caption_button = ctk.CTkButton(
             button_row,
-            text="캡션 열기",
+            text="캡션 HTML 열기",
             height=40,
             corner_radius=8,
             font=self.font_button,
@@ -695,7 +695,12 @@ class ReelsCaptionApp(ctk.CTk):
         self.open_caption_button.configure(state="normal")
         self.open_folder_button.configure(state="normal")
         self._append_log(f"완료: {result.caption_path}")
-        messagebox.showinfo("완료", f"캡션을 저장했습니다.\n\n{result.caption_path}")
+        if result.caption_html_path.exists():
+            self._append_log(f"HTML 미리보기: {result.caption_html_path}")
+        messagebox.showinfo(
+            "완료",
+            f"캡션을 저장했습니다.\n\nTXT: {result.caption_path}\nHTML: {result.caption_html_path}",
+        )
 
     def _finish_error(self, message: str) -> None:
         self.is_processing = False
@@ -717,7 +722,11 @@ class ReelsCaptionApp(ctk.CTk):
         self.log_box.configure(state="disabled")
 
     def _open_caption(self) -> None:
-        if self.latest_result and self.latest_result.caption_path.exists():
+        if not self.latest_result:
+            return
+        if self.latest_result.caption_html_path.exists():
+            os.startfile(self.latest_result.caption_html_path)  # type: ignore[attr-defined]
+        elif self.latest_result.caption_path.exists():
             os.startfile(self.latest_result.caption_path)  # type: ignore[attr-defined]
 
     def _open_result_folder(self) -> None:

@@ -6,6 +6,7 @@ import shutil
 import tempfile
 from dataclasses import dataclass
 from datetime import datetime
+from html import escape
 from pathlib import Path
 from typing import Callable
 from urllib.parse import urlparse
@@ -36,6 +37,7 @@ from reels_caption_generator.utils import (
 
 ProgressCallback = Callable[[str, float, str], None]
 CAPTION_FILE_NAME = "캡션.txt"
+CAPTION_HTML_FILE_NAME = "캡션.html"
 SCRIPT_FILE_NAME = "스크립트.txt"
 SCREENSHOT_DIR_NAME = "스크린샷 추출본"
 SUPPORT_DIR_NAME = "기타 파일"
@@ -107,6 +109,7 @@ class FrameSample:
 class CaptionResult:
     output_dir: Path
     caption_path: Path
+    caption_html_path: Path
     media_path: Path
     title: str
     transcript_path: Path | None
@@ -161,11 +164,15 @@ class CaptionPipeline:
             caption = self._generate_caption(title, transcript, screenshots, examples)
             caption_path = output_dir / CAPTION_FILE_NAME
             caption_path.write_text(caption.strip() + "\n", encoding="utf-8")
+            caption_html_path = output_dir / CAPTION_HTML_FILE_NAME
+            caption_html_path.write_text(self._caption_html(title, caption), encoding="utf-8")
 
             self.progress("완료", 1.0, f"캡션 저장 완료: {caption_path}")
+            self.progress("HTML 저장", 1.0, f"이모지 확인용 HTML 저장 완료: {caption_html_path}")
             return CaptionResult(
                 output_dir=output_dir.resolve(),
                 caption_path=caption_path.resolve(),
+                caption_html_path=caption_html_path.resolve(),
                 media_path=media_path.resolve(),
                 title=title,
                 transcript_path=transcript_path.resolve() if transcript_path else None,
@@ -189,6 +196,105 @@ class CaptionPipeline:
     @staticmethod
     def is_supported_local_media(source: str) -> bool:
         return Path(source).suffix.lower() in MEDIA_EXTENSIONS
+
+    @staticmethod
+    def _caption_html(title: str, caption: str) -> str:
+        safe_title = escape(title.strip() or "캡션")
+        safe_caption = escape(caption.strip())
+        return f"""<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{safe_title} - 캡션</title>
+  <style>
+    :root {{
+      color-scheme: light;
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Malgun Gothic", "Segoe UI", sans-serif;
+      background: #f4f7fb;
+      color: #0f172a;
+    }}
+    body {{
+      margin: 0;
+      padding: 32px;
+    }}
+    main {{
+      max-width: 820px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #dbe3ef;
+      border-radius: 12px;
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }}
+    header {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 22px;
+      border-bottom: 1px solid #e5edf6;
+      background: #f8fbff;
+    }}
+    h1 {{
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.35;
+    }}
+    button {{
+      border: 0;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #ffffff;
+      font: inherit;
+      font-weight: 700;
+      padding: 10px 16px;
+      cursor: pointer;
+      white-space: nowrap;
+    }}
+    button:hover {{
+      background: #1d4ed8;
+    }}
+    pre {{
+      margin: 0;
+      padding: 24px;
+      white-space: pre-wrap;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+      font: 17px/1.72 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Malgun Gothic", "Segoe UI", sans-serif;
+    }}
+    .note {{
+      padding: 0 24px 22px;
+      color: #64748b;
+      font-size: 13px;
+    }}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>{safe_title}</h1>
+      <button id="copy-button" type="button">캡션 복사</button>
+    </header>
+    <pre id="caption">{safe_caption}</pre>
+    <div class="note">이 HTML은 이모지 표시 확인용입니다. 인스타그램에는 복사 버튼으로 본문만 복사해 붙여넣으세요.</div>
+  </main>
+  <script>
+    const button = document.getElementById("copy-button");
+    const caption = document.getElementById("caption");
+    button.addEventListener("click", async () => {{
+      try {{
+        await navigator.clipboard.writeText(caption.innerText.trim());
+        button.textContent = "복사 완료";
+        setTimeout(() => button.textContent = "캡션 복사", 1200);
+      }} catch (_error) {{
+        button.textContent = "직접 선택해서 복사";
+      }}
+    }});
+  </script>
+</body>
+</html>
+"""
 
     def _prepare_url_source(self, url: str, started: str, temp_root: Path) -> tuple[Path, str, Path]:
         output_root = Path(self.settings.output_dir).expanduser().resolve()

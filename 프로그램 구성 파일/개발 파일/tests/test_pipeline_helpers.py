@@ -52,6 +52,15 @@ def test_cleanup_caption_removes_label() -> None:
     assert CaptionPipeline._cleanup_caption("캡션: 저장하세요\n\n#태그") == "저장하세요\n\n#태그"
 
 
+def test_caption_html_escapes_text_and_keeps_emoji() -> None:
+    html = CaptionPipeline._caption_html("제목 <x>", "첫줄 😊\n<script>")
+
+    assert "<title>제목 &lt;x&gt; - 캡션</title>" in html
+    assert "첫줄 😊" in html
+    assert "&lt;script&gt;" in html
+    assert "캡션 복사" in html
+
+
 def test_browser_cookie_error_detection() -> None:
     assert CaptionPipeline._is_browser_cookie_error(
         RuntimeError("ERROR: Could not copy Chrome cookie database")
