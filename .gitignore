@@ -1,0 +1,33 @@
+# Generated results
+생성된 캡션/**
+!생성된 캡션/.gitkeep
+
+# Training data: keep small text examples, exclude heavy media/screenshots
+학습용 데이터/**/*.mp4
+학습용 데이터/**/*.mov
+학습용 데이터/**/*.m4v
+학습용 데이터/**/*.avi
+학습용 데이터/**/*.mkv
+학습용 데이터/**/*.webm
+학습용 데이터/**/*.mp3
+학습용 데이터/**/*.wav
+학습용 데이터/**/*.m4a
+학습용 데이터/**/*.jpg
+학습용 데이터/**/*.jpeg
+학습용 데이터/**/*.png
+학습용 데이터/**/*.webp
+
+# Python / build cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+프로그램 구성 파일/개발 파일/.venv/
+프로그램 구성 파일/개발 파일/build/
+프로그램 구성 파일/개발 파일/dist/
+*.spec
+
+# Local OS / editor files
+desktop.ini
+.DS_Store
+Thumbs.db

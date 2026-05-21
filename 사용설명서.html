@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>릴스 캡션 생성기 사용설명서</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #5f6b7a;
+      --line: #d8dee8;
+      --panel: #f7f9fc;
+      --blue: #2563eb;
+      --teal: #0f9688;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Malgun Gothic", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: #eef2f7;
+      line-height: 1.65;
+    }
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 28px auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 32px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, .06);
+    }
+    h1 { margin: 0 0 8px; font-size: 32px; }
+    h2 { margin: 30px 0 12px; font-size: 21px; }
+    p { margin: 8px 0; }
+    .lead { color: var(--muted); font-size: 16px; }
+    .tag {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #eaf2ff;
+      color: var(--blue);
+      font-weight: 700;
+      font-size: 13px;
+    }
+    code {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #eef2f7;
+      font-family: Consolas, monospace;
+    }
+    section {
+      border-top: 1px solid var(--line);
+      margin-top: 28px;
+      padding-top: 4px;
+    }
+    ol, ul { padding-left: 24px; }
+    li { margin: 6px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 11px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--panel); }
+    tr:last-child td { border-bottom: 0; }
+    .note {
+      border-left: 4px solid var(--teal);
+      background: #ecfdf8;
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      color: #214a43;
+    }
+    pre {
+      overflow: auto;
+      padding: 14px;
+      border-radius: 8px;
+      background: #111827;
+      color: #e5e7eb;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>릴스 캡션 생성기</h1>
+  <p class="lead">영상 파일이나 릴스/유튜브 링크를 넣으면 전사문, 화면 프레임, 기존 학습용 캡션 예시를 종합해 인스타그램 게시용 <code>캡션.txt</code>를 만들어 줍니다.</p>
+  <div class="tag">developed by yeohj0710</div>
+
+  <section>
+    <h2>빠른 사용법</h2>
+    <ol>
+      <li><code>릴스 캡션 생성기.exe</code>를 실행합니다.</li>
+      <li>OpenAI API 키를 입력합니다. 키는 입력 중 바로 확인할 수 있고, 기본적으로 이 PC에 저장됩니다.</li>
+      <li><code>PC 파일 선택</code> 또는 <code>링크로 가져오기</code>를 선택합니다.</li>
+      <li>PC 파일을 고른 뒤 옆의 <code>열기</code>로 원본 폴더를 바로 열 수 있습니다.</li>
+      <li>저장 위치를 확인하고 <code>캡션 생성 시작</code>을 누릅니다.</li>
+      <li>완료되면 <code>캡션 열기</code> 또는 <code>결과 폴더 열기</code>로 결과를 확인합니다.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>결과 저장 위치</h2>
+    <p>PC 파일을 선택하면 기본적으로 영상이 있는 폴더에 <code>캡션.txt</code>를 저장합니다. 기존 학습용 데이터 폴더 안의 영상을 선택하면 그 폴더에 바로 캡션이 만들어집니다.</p>
+    <p>링크로 가져오면 <code>생성된 캡션</code> 폴더 아래에 새 폴더를 만들고, 영상·스크립트·스크린샷·캡션을 함께 저장합니다.</p>
+    <pre>생성된 캡션/
+  2605211710 영상제목/
+    영상제목.mp4
+    스크립트.txt
+    캡션.txt
+    스크린샷 추출본/</pre>
+  </section>
+
+  <section>
+    <h2>자동 분석</h2>
+    <p><code>학습용 데이터</code> 폴더 안의 기존 <code>캡션.txt</code>를 자동으로 참고해 말투, 줄바꿈, 해시태그, 주의 문구 스타일을 맞춥니다.</p>
+    <p>화면 분석 프레임 수와 추출 간격은 영상 길이에 맞춰 자동으로 정해집니다. 화면에 논문명, DOI, 학술지명이 보이면 캡션 하단에 참고 논문을 짧게 포함하도록 설정되어 있습니다.</p>
+    <p class="note">좋은 캡션을 <code>학습용 데이터/영상 주제/캡션.txt</code> 형태로 계속 넣어두면 이후 결과도 그 톤을 더 잘 따라갑니다.</p>
+  </section>
+
+  <section>
+    <h2>API 비용</h2>
+    <p>OpenAI API 사용량에 따라 비용이 발생합니다. 진행 로그에는 전사와 캡션 생성의 예상 API 비용이 USD 기준으로 표시됩니다.</p>
+    <p>예상 캡션 비용이 높으면 앱이 분석 프레임 수를 자동으로 줄여 비용을 먼저 낮춥니다. 영상 길이, 말의 양, 화면 프레임 수, 선택한 모델에 따라 실제 비용은 달라질 수 있습니다.</p>
+  </section>
+
+  <section>
+    <h2>지원 입력</h2>
+    <ul>
+      <li>YouTube 영상/Shorts 링크</li>
+      <li>Instagram 릴스/게시물 링크</li>
+      <li>MP4, MOV, MKV, AVI, WEBM 등 주요 영상 파일</li>
+      <li>MP3, M4A, WAV, FLAC 등 주요 오디오 파일</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>폴더 구성</h2>
+    <table>
+      <tr><th>항목</th><th>설명</th></tr>
+      <tr><td><code>릴스 캡션 생성기.exe</code></td><td>실행 파일입니다.</td></tr>
+      <tr><td><code>사용설명서.html</code></td><td>현재 문서입니다.</td></tr>
+      <tr><td><code>학습용 데이터</code></td><td>캡션 톤을 맞추기 위한 작은 예시 텍스트가 들어 있습니다.</td></tr>
+      <tr><td><code>생성된 캡션</code></td><td>링크 작업 결과가 저장되는 폴더입니다.</td></tr>
+      <tr><td><code>프로그램 구성 파일</code></td><td>실행에 필요한 런타임 파일입니다. 삭제하거나 이름을 바꾸면 실행이 안 될 수 있습니다.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>문제 해결</h2>
+    <ul>
+      <li>Instagram 링크 다운로드가 실패하면 브라우저에서 로그인한 뒤 <code>브라우저 쿠키 사용</code>을 켜고 다시 시도하세요.</li>
+      <li>OpenAI 오류가 나면 API 키, 결제 상태, 모델명을 확인하세요.</li>
+      <li>캡션이 화면 내용과 다르면 생성된 <code>스크린샷 추출본</code>과 <code>캡션.txt</code>를 같이 확인한 뒤 필요한 문장만 직접 다듬으세요.</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

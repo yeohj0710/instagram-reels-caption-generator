@@ -1,0 +1,10 @@
+[project]
+name = "reels-caption-generator"
+version = "0.1.0"
+description = "릴스/쇼츠 영상과 기존 학습용 데이터를 바탕으로 인스타그램 캡션 txt를 생성하는 Windows 데스크톱 앱"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
