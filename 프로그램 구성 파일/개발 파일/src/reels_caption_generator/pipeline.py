@@ -246,14 +246,33 @@ class CaptionPipeline:
             "concurrent_fragment_downloads": 4,
             "progress_hooks": [self._download_progress_hook],
         }
-        if self.settings.use_browser_cookies:
+        use_browser_cookies = self.settings.use_browser_cookies
+        if use_browser_cookies:
             ydl_opts["cookiesfrombrowser"] = (self.settings.cookie_browser or "chrome",)
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
         except Exception as exc:
-            raise UserFacingError(f"영상 다운로드에 실패했습니다.\n\n{self._brief_error(exc)}") from exc
+            if use_browser_cookies and self._is_browser_cookie_error(exc):
+                browser = self.settings.cookie_browser or "chrome"
+                self.progress(
+                    "쿠키 없이 재시도",
+                    0.09,
+                    f"{browser} 쿠키를 읽지 못해 쿠키 없이 다시 다운로드합니다.",
+                )
+                ydl_opts.pop("cookiesfrombrowser", None)
+                try:
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        info = ydl.extract_info(url, download=True)
+                except Exception as retry_exc:
+                    raise UserFacingError(
+                        "영상 다운로드에 실패했습니다.\n\n"
+                        "브라우저 쿠키를 읽지 못했고, 쿠키 없이 재시도해도 실패했습니다.\n"
+                        f"{self._brief_error(retry_exc)}"
+                    ) from retry_exc
+            else:
+                raise UserFacingError(f"영상 다운로드에 실패했습니다.\n\n{self._brief_error(exc)}") from exc
         if not isinstance(info, dict):
             raise UserFacingError("영상 정보를 가져오지 못했습니다.")
 
@@ -262,6 +281,15 @@ class CaptionPipeline:
         if downloaded is None:
             raise UserFacingError("다운로드된 영상 파일을 찾지 못했습니다.")
         return downloaded.resolve(), title
+
+    @staticmethod
+    def _is_browser_cookie_error(exc: Exception) -> bool:
+        message = str(exc).lower()
+        cookie_markers = ("cookie", "cookiesfrombrowser")
+        browser_markers = ("browser", "database", "could not copy", "failed to copy")
+        return any(marker in message for marker in cookie_markers) and any(
+            marker in message for marker in browser_markers
+        )
 
     def _download_progress_hook(self, payload: dict[str, object]) -> None:
         status = str(payload.get("status") or "")

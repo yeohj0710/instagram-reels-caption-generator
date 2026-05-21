@@ -37,6 +37,13 @@ def test_cleanup_caption_removes_label() -> None:
     assert CaptionPipeline._cleanup_caption("캡션: 저장하세요\n\n#태그") == "저장하세요\n\n#태그"
 
 
+def test_browser_cookie_error_detection() -> None:
+    assert CaptionPipeline._is_browser_cookie_error(
+        RuntimeError("ERROR: Could not copy Chrome cookie database")
+    )
+    assert not CaptionPipeline._is_browser_cookie_error(RuntimeError("HTTP Error 404: Not Found"))
+
+
 def test_load_training_examples_reads_child_caption_files(tmp_path: Path) -> None:
     example_dir = tmp_path / "예시"
     example_dir.mkdir()

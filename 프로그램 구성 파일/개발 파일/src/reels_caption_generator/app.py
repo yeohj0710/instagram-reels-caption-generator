@@ -171,29 +171,19 @@ class ReelsCaptionApp(ctk.CTk):
         header.grid_columnconfigure(1, weight=0)
 
         ctk.CTkLabel(header, text=PRODUCT_NAME, font=self.font_title, text_color="#111827").grid(
-            row=0, column=0, padx=32, pady=(22, 4), sticky="w"
+            row=0, column=0, padx=32, pady=(22, 6), sticky="w"
         )
-        credit = ctk.CTkLabel(
-            header,
-            text="developed by yeohj0710",
-            font=self.font_credit,
-            text_color="#2563eb",
-            fg_color="#eaf2ff",
-            corner_radius=6,
-            padx=10,
-            pady=3,
-        )
-        credit.grid(row=1, column=0, padx=32, pady=(0, 7), sticky="w")
-        credit.configure(cursor="hand2")
-        credit.bind("<Button-1>", lambda _event: webbrowser.open("https://github.com/yeohj0710"))
         ctk.CTkLabel(
             header,
             text="PC 영상 또는 릴스/유튜브 링크를 분석해서 기존 학습용 데이터 톤에 맞는 캡션.txt를 생성합니다.",
             font=self.font_subtitle,
             text_color="#475569",
-        ).grid(row=2, column=0, padx=32, pady=(0, 22), sticky="w")
+        ).grid(row=1, column=0, padx=32, pady=(0, 22), sticky="w")
+
+        header_actions = ctk.CTkFrame(header, fg_color="transparent")
+        header_actions.grid(row=0, column=1, rowspan=2, padx=(12, 32), pady=26, sticky="e")
         ctk.CTkButton(
-            header,
+            header_actions,
             text="사용설명서 열기",
             width=172,
             height=40,
@@ -203,7 +193,20 @@ class ReelsCaptionApp(ctk.CTk):
             hover_color=self.secondary_hover,
             text_color=self.secondary_text,
             command=self._open_user_guide,
-        ).grid(row=0, column=1, rowspan=3, padx=(12, 32), pady=26, sticky="e")
+        ).grid(row=0, column=0, sticky="e")
+        credit = ctk.CTkLabel(
+            header_actions,
+            text="developed by yeohj0710",
+            font=self.font_credit,
+            text_color="#2563eb",
+            fg_color="#eaf2ff",
+            corner_radius=6,
+            padx=10,
+            pady=3,
+        )
+        credit.grid(row=0, column=1, padx=(8, 0), sticky="e")
+        credit.configure(cursor="hand2")
+        credit.bind("<Button-1>", lambda _event: webbrowser.open("https://github.com/yeohj0710"))
 
         body = ctk.CTkFrame(self, fg_color="#edf1f6", corner_radius=0)
         body.grid(row=1, column=0, sticky="nsew")
@@ -223,18 +226,20 @@ class ReelsCaptionApp(ctk.CTk):
         right = ctk.CTkFrame(body, fg_color="#ffffff", corner_radius=10)
         right.grid(row=0, column=1, sticky="nsew", padx=(12, 24), pady=24)
         right.grid_columnconfigure(0, weight=1)
-        right.grid_rowconfigure(4, weight=1)
+        right.grid_rowconfigure(3, weight=1)
 
         self._source_card(left).grid(row=0, column=0, sticky="ew", pady=(0, 14))
         self._openai_card(left).grid(row=1, column=0, sticky="ew", pady=(0, 14))
         self._output_card(left).grid(row=2, column=0, sticky="ew", pady=(0, 14))
+        self.start_button = self._start_action_button(left)
+        self.start_button.grid(row=3, column=0, sticky="ew", pady=(0, 14))
         self._status_panel(right)
 
     def _card(self, parent: ctk.CTkBaseClass, title: str) -> ctk.CTkFrame:
         card = ctk.CTkFrame(parent, fg_color="#ffffff", corner_radius=10)
         card.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(card, text=title, font=self.font_card_title, text_color="#111827").grid(
-            row=0, column=0, padx=22, pady=(20, 12), sticky="w"
+            row=0, column=0, padx=22, pady=(18, 8), sticky="w"
         )
         return card
 
@@ -247,13 +252,13 @@ class ReelsCaptionApp(ctk.CTk):
             justify="left",
             anchor="w",
             wraplength=560,
-        ).grid(row=row, column=0, padx=22, pady=(0, 12), sticky="ew")
+        ).grid(row=row, column=0, padx=22, pady=(0, 8), sticky="ew")
 
     def _source_card(self, parent: ctk.CTkBaseClass) -> ctk.CTkFrame:
         card = self._card(parent, "영상 가져오기")
         self._helper_label(card, "릴스/유튜브 링크를 붙여넣거나, PC에 저장된 영상 파일을 선택합니다.", 1)
         ctk.CTkLabel(card, text="가져올 방식", font=self.font_label, text_color="#334155").grid(
-            row=2, column=0, padx=22, pady=(0, 8), sticky="w"
+            row=2, column=0, padx=22, pady=(0, 6), sticky="w"
         )
         self.source_mode_switch = ctk.CTkSegmentedButton(
             card,
@@ -270,7 +275,7 @@ class ReelsCaptionApp(ctk.CTk):
             unselected_hover_color="#edf2f7",
             text_color="#1f2937",
         )
-        self.source_mode_switch.grid(row=3, column=0, padx=22, pady=(0, 16), sticky="ew")
+        self.source_mode_switch.grid(row=3, column=0, padx=22, pady=(0, 12), sticky="ew")
 
         self.file_panel = ctk.CTkFrame(card, fg_color="#f6f8fb", corner_radius=8)
         self.file_panel.grid_columnconfigure(0, weight=1)
@@ -471,6 +476,18 @@ class ReelsCaptionApp(ctk.CTk):
         ).grid(row=0, column=2)
         return card
 
+    def _start_action_button(self, parent: ctk.CTkBaseClass) -> ctk.CTkButton:
+        return ctk.CTkButton(
+            parent,
+            text="캡션 생성 시작",
+            height=48,
+            corner_radius=8,
+            font=self.font_button,
+            fg_color=self.primary_color,
+            hover_color=self.primary_hover,
+            command=self._start_generation,
+        )
+
     def _status_panel(self, parent: ctk.CTkFrame) -> None:
         ctk.CTkLabel(parent, text="작업 상태", font=self.font_card_title, text_color="#111827").grid(
             row=0, column=0, padx=22, pady=(22, 8), sticky="w"
@@ -486,25 +503,13 @@ class ReelsCaptionApp(ctk.CTk):
         self.progress_bar.grid(row=0, column=1, sticky="ew")
         self.progress_bar.set(0)
 
-        self.start_button = ctk.CTkButton(
-            parent,
-            text="캡션 생성 시작",
-            height=46,
-            corner_radius=8,
-            font=self.font_button,
-            fg_color=self.primary_color,
-            hover_color=self.primary_hover,
-            command=self._start_generation,
-        )
-        self.start_button.grid(row=3, column=0, padx=22, pady=(0, 16), sticky="ew")
-
         self.log_box = ctk.CTkTextbox(parent, height=260, font=self.font_log, corner_radius=8, fg_color="#f8fafc")
-        self.log_box.grid(row=4, column=0, padx=22, pady=(0, 16), sticky="nsew")
+        self.log_box.grid(row=3, column=0, padx=22, pady=(0, 16), sticky="nsew")
         self.log_box.insert("1.0", "여기에 진행 로그가 표시됩니다.\n")
         self.log_box.configure(state="disabled")
 
         button_row = ctk.CTkFrame(parent, fg_color="transparent")
-        button_row.grid(row=5, column=0, padx=22, pady=(0, 22), sticky="ew")
+        button_row.grid(row=4, column=0, padx=22, pady=(0, 22), sticky="ew")
         button_row.grid_columnconfigure(0, weight=1)
         button_row.grid_columnconfigure(1, weight=1)
         self.open_caption_button = ctk.CTkButton(
@@ -544,9 +549,11 @@ class ReelsCaptionApp(ctk.CTk):
 
     def _refresh_custom_model(self) -> None:
         if self.text_model_var.get() == CUSTOM_TEXT_MODEL_OPTION:
+            self.custom_model_entry.grid(row=5, column=0, padx=22, pady=(0, 14), sticky="ew")
             self.custom_model_entry.configure(state="normal")
         else:
             self.custom_model_entry.configure(state="disabled")
+            self.custom_model_entry.grid_remove()
 
     def _choose_media_file(self) -> None:
         filetypes = [("미디어 파일", MEDIA_FILE_PATTERN), ("모든 파일", "*.*")]

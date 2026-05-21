@@ -8,6 +8,7 @@ $DevDirName = -join ([char[]](0xAC1C, 0xBC1C, 0x20, 0xD30C, 0xC77C))
 $OutputDirName = -join ([char[]](0xC0DD, 0xC131, 0xB41C, 0x20, 0xCEA1, 0xC158))
 $TrainingDirName = -join ([char[]](0xD559, 0xC2B5, 0xC6A9, 0x20, 0xB370, 0xC774, 0xD130))
 $GuideFileName = (-join ([char[]](0xC0AC, 0xC6A9, 0xC124, 0xBA85, 0xC11C))) + ".html"
+$DownloadZipImageName = "github-download-zip.png"
 $ExeBaseName = -join ([char[]](0xB9B4, 0xC2A4, 0x20, 0xCEA1, 0xC158, 0x20, 0xC0DD, 0xC131, 0xAE30))
 $ExeFileName = $ExeBaseName + ".exe"
 Set-Location -LiteralPath $DevRoot
@@ -113,6 +114,11 @@ Get-ChildItem -LiteralPath $ProgramFilesDir -Force | ForEach-Object {
     }
 }
 Get-ChildItem -LiteralPath $BuiltRuntimeDir -Force | Copy-Item -Destination $ProgramFilesDir -Recurse -Force
+
+$DownloadZipImageSource = Join-Path (Join-Path $DevRoot "assets") $DownloadZipImageName
+if (Test-Path -LiteralPath $DownloadZipImageSource) {
+    Copy-Item -LiteralPath $DownloadZipImageSource -Destination (Join-Path $ProgramFilesDir $DownloadZipImageName) -Force
+}
 
 New-Item -ItemType Directory -Force -Path (Join-Path $RepoRoot $OutputDirName) | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $RepoRoot $TrainingDirName) | Out-Null
