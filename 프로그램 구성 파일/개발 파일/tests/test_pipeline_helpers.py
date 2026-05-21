@@ -21,8 +21,8 @@ def test_seconds_from_frame_name() -> None:
 
 def test_auto_frame_count_scales_with_duration() -> None:
     assert CaptionPipeline._auto_frame_count(10) == 10
-    assert CaptionPipeline._auto_frame_count(60) == 20
-    assert CaptionPipeline._auto_frame_count(999) == 28
+    assert CaptionPipeline._auto_frame_count(60) == 60
+    assert CaptionPipeline._auto_frame_count(999) == 60
 
 
 def test_sample_timestamps_cover_video_range() -> None:
@@ -31,6 +31,21 @@ def test_sample_timestamps_cover_video_range() -> None:
     assert len(timestamps) == 6
     assert timestamps[0] == 0
     assert 29 <= timestamps[-1] <= 30
+
+
+def test_auto_sample_timestamps_use_one_second_until_cap() -> None:
+    timestamps = CaptionPipeline._sample_timestamps(30)
+
+    assert len(timestamps) == 30
+    assert timestamps[:4] == [0.0, 1.0, 2.0, 3.0]
+
+
+def test_auto_sample_timestamps_cap_long_video() -> None:
+    timestamps = CaptionPipeline._sample_timestamps(600)
+
+    assert len(timestamps) == 60
+    assert timestamps[1] - timestamps[0] > 1
+    assert 599 <= timestamps[-1] <= 600
 
 
 def test_cleanup_caption_removes_label() -> None:

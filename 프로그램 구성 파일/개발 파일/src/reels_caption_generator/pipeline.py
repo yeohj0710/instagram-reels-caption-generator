@@ -83,6 +83,8 @@ MIN_COST_OPTIMIZED_FRAMES = 4
 IMAGE_DETAIL = "high"
 IMAGE_MAX_EDGE = 900
 IMAGE_JPEG_QUALITY = 70
+TARGET_SCREENSHOT_INTERVAL_SECONDS = 1.0
+MAX_EXTRACTED_SCREENSHOTS = 60
 
 
 class UserFacingError(RuntimeError):
@@ -346,11 +348,13 @@ class CaptionPipeline:
         output_screenshot_dir.mkdir(parents=True, exist_ok=True)
         self.progress("스크린샷 추출 중", 0.30, "영상 길이에 맞춰 화면 분석용 프레임을 자동으로 추출합니다.")
         duration = max(1.0, get_media_duration(media_path, self.ffmpeg))
-        timestamps = self._sample_timestamps(duration, self._auto_frame_count(duration))
+        timestamps = self._sample_timestamps(duration)
+        interval = self._auto_frame_interval(duration)
         self.progress(
             "스크린샷 추출 중",
             0.31,
-            f"영상 길이 {format_timecode(duration)} 기준으로 프레임 {len(timestamps)}장을 자동 선택했습니다.",
+            f"영상 길이 {format_timecode(duration)} 기준으로 {interval:.1f}초 간격, "
+            f"최대 {MAX_EXTRACTED_SCREENSHOTS}장 안전장치를 적용해 프레임 {len(timestamps)}장을 선택했습니다.",
         )
         extracted: list[Path] = []
         for seconds in timestamps:
@@ -408,12 +412,20 @@ class CaptionPipeline:
 
     @staticmethod
     def _auto_frame_count(duration: float) -> int:
-        duration = max(1.0, float(duration))
-        return max(8, min(28, int(round(duration / 5)) + 8))
+        return len(CaptionPipeline._sample_timestamps(duration))
 
     @staticmethod
-    def _sample_timestamps(duration: float, frame_count: int) -> list[float]:
+    def _auto_frame_interval(duration: float) -> float:
         duration = max(1.0, float(duration))
+        return max(TARGET_SCREENSHOT_INTERVAL_SECONDS, duration / MAX_EXTRACTED_SCREENSHOTS)
+
+    @staticmethod
+    def _sample_timestamps(duration: float, frame_count: int | None = None) -> list[float]:
+        duration = max(1.0, float(duration))
+        if frame_count is None:
+            interval = CaptionPipeline._auto_frame_interval(duration)
+            return CaptionPipeline._sample_timestamps_by_interval(duration, interval, MAX_EXTRACTED_SCREENSHOTS)
+
         frame_count = max(1, int(frame_count))
         if frame_count == 1:
             return [0.0]
@@ -429,6 +441,30 @@ class CaptionPipeline:
             timestamps.append(seconds)
             seen.add(key)
         return timestamps or [0.0]
+
+    @staticmethod
+    def _sample_timestamps_by_interval(duration: float, interval: float, max_count: int) -> list[float]:
+        duration = max(1.0, float(duration))
+        interval = max(0.25, float(interval))
+        max_count = max(1, int(max_count))
+        last_second = max(0.0, duration - 0.35)
+
+        timestamps: list[float] = []
+        current = 0.0
+        while current <= last_second + 0.001 and len(timestamps) < max_count:
+            timestamps.append(round(current, 2))
+            current += interval
+
+        if not timestamps:
+            return [0.0]
+        if len(timestamps) >= max_count and timestamps[-1] < last_second:
+            timestamps[-1] = round(last_second, 2)
+            return timestamps
+        if timestamps[-1] < last_second and len(timestamps) < max_count:
+            gap = last_second - timestamps[-1]
+            if gap >= interval * 0.75:
+                timestamps.append(round(last_second, 2))
+        return timestamps
 
     @staticmethod
     def _seconds_from_frame_name(name: str, fallback: int) -> int:
