@@ -6,7 +6,7 @@ from reels_caption_generator.costing import (
     estimate_image_tokens,
     estimate_response_cost,
     estimate_transcription_cost,
-    format_usd,
+    format_krw,
 )
 
 
@@ -33,5 +33,6 @@ def test_response_cost_includes_image_tokens(tmp_path) -> None:
     assert estimate.total_usd > 0
 
 
-def test_format_usd_keeps_small_cost_visible() -> None:
-    assert format_usd(0.00034) == "$0.0003"
+def test_format_krw_keeps_small_cost_visible() -> None:
+    assert format_krw(0.00034) == "1원 미만"
+    assert format_krw(0.025) == "약 38원"

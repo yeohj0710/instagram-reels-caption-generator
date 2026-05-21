@@ -108,12 +108,21 @@ Copy-Item -LiteralPath $BuiltExe -Destination (Join-Path $RepoRoot $ExeFileName)
 New-Item -ItemType Directory -Force -Path $ProgramFilesDir | Out-Null
 $DevRootResolved = (Resolve-Path -LiteralPath $DevRoot).Path
 Get-ChildItem -LiteralPath $ProgramFilesDir -Force | ForEach-Object {
-    $ItemPath = (Resolve-Path $_.FullName).Path
+    try {
+        $ItemPath = (Resolve-Path -LiteralPath $_.FullName -ErrorAction Stop).Path
+    } catch {
+        return
+    }
     if ($ItemPath -ne $DevRootResolved -and $_.Name -ne $DevDirName) {
-        Remove-Item -LiteralPath $_.FullName -Recurse -Force
+        Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
-Get-ChildItem -LiteralPath $BuiltRuntimeDir -Force | Copy-Item -Destination $ProgramFilesDir -Recurse -Force
+Get-ChildItem -LiteralPath $BuiltRuntimeDir -Force | ForEach-Object {
+    if ($_.Name -eq "desktop.ini" -or -not (Test-Path -LiteralPath $_.FullName)) {
+        return
+    }
+    Copy-Item -LiteralPath $_.FullName -Destination $ProgramFilesDir -Recurse -Force
+}
 
 $DownloadZipImageSource = Join-Path (Join-Path $DevRoot "assets") $DownloadZipImageName
 if (Test-Path -LiteralPath $DownloadZipImageSource) {

@@ -182,11 +182,13 @@ class ReelsCaptionApp(ctk.CTk):
 
         header_actions = ctk.CTkFrame(header, fg_color="transparent")
         header_actions.grid(row=0, column=1, rowspan=2, padx=(12, 32), pady=26, sticky="e")
+        action_width = 172
+        action_height = 40
         ctk.CTkButton(
             header_actions,
             text="사용설명서 열기",
-            width=172,
-            height=40,
+            width=action_width,
+            height=action_height,
             corner_radius=8,
             font=self.font_button,
             fg_color=self.secondary_color,
@@ -194,19 +196,19 @@ class ReelsCaptionApp(ctk.CTk):
             text_color=self.secondary_text,
             command=self._open_user_guide,
         ).grid(row=0, column=0, sticky="e")
-        credit = ctk.CTkLabel(
+        credit = ctk.CTkButton(
             header_actions,
             text="developed by yeohj0710",
+            width=action_width,
+            height=action_height,
+            corner_radius=8,
             font=self.font_credit,
-            text_color="#2563eb",
             fg_color="#eaf2ff",
-            corner_radius=6,
-            padx=10,
-            pady=3,
+            hover_color="#dbeafe",
+            text_color="#2563eb",
+            command=lambda: webbrowser.open("https://github.com/yeohj0710"),
         )
         credit.grid(row=0, column=1, padx=(8, 0), sticky="e")
-        credit.configure(cursor="hand2")
-        credit.bind("<Button-1>", lambda _event: webbrowser.open("https://github.com/yeohj0710"))
 
         body = ctk.CTkFrame(self, fg_color="#edf1f6", corner_radius=0)
         body.grid(row=1, column=0, sticky="nsew")

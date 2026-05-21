@@ -32,6 +32,7 @@ IMAGE_TOKEN_TABLE: dict[str, tuple[int, int]] = {
 DEFAULT_TEXT_PRICE_PER_1M = (0.25, 2.00)
 DEFAULT_IMAGE_TOKEN_TABLE = (85, 170)
 ESTIMATED_CAPTION_OUTPUT_TOKENS = 900
+DISPLAY_KRW_PER_USD = 1500
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,18 @@ def format_usd(value: float) -> str:
     if value < 0.01:
         return f"${value:.4f}"
     return f"${value:.3f}"
+
+
+def format_krw(value_usd: float) -> str:
+    if value_usd <= 0:
+        return "0원"
+    krw = value_usd * DISPLAY_KRW_PER_USD
+    if krw < 1:
+        return "1원 미만"
+    if krw < 10:
+        value = f"{krw:.1f}".rstrip("0").rstrip(".")
+        return f"약 {value}원"
+    return f"약 {round(krw):,}원"
 
 
 def estimate_text_tokens(text: str) -> int:

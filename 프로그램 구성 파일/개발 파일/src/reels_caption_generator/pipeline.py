@@ -17,7 +17,7 @@ from reels_caption_generator.costing import (
     cost_from_usage,
     estimate_response_cost,
     estimate_transcription_cost,
-    format_usd,
+    format_krw,
 )
 from reels_caption_generator.settings import AppSettings
 from reels_caption_generator.utils import (
@@ -476,7 +476,7 @@ class CaptionPipeline:
         self.progress(
             "예상 API 비용",
             0.52,
-            f"전사 예상 비용: {format_usd(transcription_cost)} "
+            f"전사 예상 비용: {format_krw(transcription_cost)} "
             f"({duration / 60:.1f}분, {self.settings.transcription_model})",
         )
         self.progress("전사 중", 0.54, "OpenAI 전사 모델로 대사를 읽고 있습니다.")
@@ -566,9 +566,9 @@ class CaptionPipeline:
             "예상 API 비용",
             0.74,
             "예상 총 비용: "
-            f"{format_usd(total_estimated_cost)} "
-            f"(전사 {format_usd(self.estimated_transcription_cost_usd)} + "
-            f"캡션 {format_usd(estimated_caption_cost.total_usd)}, "
+            f"{format_krw(total_estimated_cost)} "
+            f"(전사 {format_krw(self.estimated_transcription_cost_usd)} + "
+            f"캡션 {format_krw(estimated_caption_cost.total_usd)}, "
             f"이미지 토큰 약 {estimated_caption_cost.image_tokens:,}개)",
         )
 
@@ -622,7 +622,7 @@ class CaptionPipeline:
                 "실제 API 비용",
                 0.90,
                 "실제 토큰 기준 비용: "
-                f"{format_usd(actual_total_cost)} "
+                f"{format_krw(actual_total_cost)} "
                 f"(입력 {actual_caption_cost.input_tokens:,}토큰, "
                 f"출력 {actual_caption_cost.output_tokens:,}토큰, 전사 예상 포함)",
             )
@@ -655,13 +655,13 @@ class CaptionPipeline:
                 "비용 최적화",
                 0.73,
                 f"예상 캡션 비용이 높아 분석 프레임을 {original_count}장 -> {len(optimized)}장으로 줄였습니다. "
-                f"{format_usd(original_cost)} -> {format_usd(estimate.total_usd)}",
+                f"{format_krw(original_cost)} -> {format_krw(estimate.total_usd)}",
             )
         if estimate.total_usd > MAX_ESTIMATED_CAPTION_USD:
             self.progress(
                 "비용 주의",
                 0.73,
-                f"프레임을 줄여도 캡션 예상 비용이 {format_usd(estimate.total_usd)}입니다. "
+                f"프레임을 줄여도 캡션 예상 비용이 {format_krw(estimate.total_usd)}입니다. "
                 "긴 전사문/학습용 예시가 많으면 비용이 늘어날 수 있습니다.",
             )
         return optimized, estimate
